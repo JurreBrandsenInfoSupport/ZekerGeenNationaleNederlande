@@ -50,5 +50,41 @@ export type ApiResponse<T> = {
   success: boolean
   data?: T
   error?: string
+  pagination?: PaginationInfo
+}
+
+export type PaginationInfo = {
+  currentPage: number
+  totalPages: number
+  pageSize: number
+  totalItems: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
+export type SortDirection = "asc" | "desc"
+
+export type SortOption = {
+  field: string
+  direction: SortDirection
+}
+
+export type FilterOption = {
+  field: string
+  value: string | number | boolean
+  operator?: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "contains" | "startsWith" | "endsWith"
+}
+
+export type PaginatedRequest = {
+  page?: number
+  pageSize?: number
+  sort?: SortOption
+  filters?: FilterOption[]
+  search?: string
+}
+
+export type PaginatedResponse<T> = {
+  items: T[]
+  pagination: PaginationInfo
 }
 
