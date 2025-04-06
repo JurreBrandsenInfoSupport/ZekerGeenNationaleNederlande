@@ -223,6 +223,126 @@ export const getApiDocs = () => {
               },
             },
           },
+          Payment: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'integer',
+                description: 'The payment ID',
+              },
+              paymentId: {
+                type: 'string',
+                description: 'The payment reference',
+              },
+              customerId: {
+                type: 'integer',
+                description: 'The customer ID',
+              },
+              customer: {
+                type: 'string',
+                description: 'The customer name',
+              },
+              amount: {
+                type: 'number',
+                description: 'The payment amount',
+              },
+              currency: {
+                type: 'string',
+                description: 'The payment currency',
+              },
+              date: {
+                type: 'string',
+                format: 'date',
+                description: 'The payment date',
+              },
+              method: {
+                type: 'string',
+                description: 'The payment method',
+                enum: ['bank_transfer', 'credit_card', 'check', 'direct_debit'],
+              },
+              status: {
+                type: 'string',
+                description: 'The payment status',
+                enum: ['completed', 'pending', 'failed', 'cancelled'],
+              },
+              description: {
+                type: 'string',
+                description: 'The payment description',
+              },
+              referenceNumber: {
+                type: 'string',
+                description: 'The payment reference number',
+              },
+            },
+          },
+          PaymentCreate: {
+            type: 'object',
+            required: ['customerId', 'customer', 'amount', 'currency', 'date', 'method'],
+            properties: {
+              customerId: {
+                type: 'integer',
+                description: 'The customer ID',
+              },
+              customer: {
+                type: 'string',
+                description: 'The customer name',
+              },
+              amount: {
+                type: 'number',
+                description: 'The payment amount',
+              },
+              currency: {
+                type: 'string',
+                description: 'The payment currency',
+              },
+              date: {
+                type: 'string',
+                format: 'date',
+                description: 'The payment date',
+              },
+              method: {
+                type: 'string',
+                description: 'The payment method',
+                enum: ['bank_transfer', 'credit_card', 'check', 'direct_debit'],
+              },
+              description: {
+                type: 'string',
+                description: 'The payment description',
+              },
+            },
+          },
+          PaymentUpdate: {
+            type: 'object',
+            properties: {
+              amount: {
+                type: 'number',
+                description: 'The payment amount',
+              },
+              currency: {
+                type: 'string',
+                description: 'The payment currency',
+              },
+              date: {
+                type: 'string',
+                format: 'date',
+                description: 'The payment date',
+              },
+              method: {
+                type: 'string',
+                description: 'The payment method',
+                enum: ['bank_transfer', 'credit_card', 'check', 'direct_debit'],
+              },
+              status: {
+                type: 'string',
+                description: 'The payment status',
+                enum: ['completed', 'pending', 'failed', 'cancelled'],
+              },
+              description: {
+                type: 'string',
+                description: 'The payment description',
+              },
+            },
+          },
         },
         parameters: {
           page: {

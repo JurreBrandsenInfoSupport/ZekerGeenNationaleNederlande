@@ -88,3 +88,37 @@ export type PaginatedResponse<T> = {
   pagination: PaginationInfo
 }
 
+// Payment related types
+export interface Payment {
+  id: number
+  paymentId: string
+  customerId: number
+  customer: string
+  amount: number
+  currency: string
+  date: string
+  method: 'bank_transfer' | 'credit_card' | 'check' | 'direct_debit'
+  status: 'completed' | 'pending' | 'failed' | 'cancelled'
+  description: string
+  referenceNumber: string
+}
+
+export interface PaymentCreate {
+  customerId: number
+  customer: string
+  amount: number
+  currency: string
+  date: string
+  method: 'bank_transfer' | 'credit_card' | 'check' | 'direct_debit'
+  description: string
+}
+
+export interface PaymentUpdate {
+  amount?: number
+  currency?: string
+  date?: string
+  method?: 'bank_transfer' | 'credit_card' | 'check' | 'direct_debit'
+  status?: 'completed' | 'pending' | 'failed' | 'cancelled'
+  description?: string
+}
+

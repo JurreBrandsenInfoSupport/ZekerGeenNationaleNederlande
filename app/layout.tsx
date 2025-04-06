@@ -18,6 +18,16 @@ export const metadata: Metadata = {
   },
 }
 
+const navigation = [
+  { name: "Dashboard", href: "/" },
+  { name: "Customers", href: "/customers" },
+  { name: "Policies", href: "/policies" },
+  { name: "Claims", href: "/claims" },
+  { name: "Payments", href: "/payments" },
+  { name: "Reports", href: "/reports" },
+  { name: "Settings", href: "/settings" },
+]
+
 export default function RootLayout({
   children,
 }: Readonly<{
