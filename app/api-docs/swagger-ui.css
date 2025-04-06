@@ -1,0 +1,44 @@
+.swagger-ui .opblock-body pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.swagger-ui .response-col_description__inner div.markdown,
+.swagger-ui .response-col_description__inner div.renderedMarkdown {
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.swagger-ui .opblock .opblock-summary-description {
+  text-align: right;
+  padding-left: 10px;
+}
+
+.swagger-ui pre.version {
+  background-color: transparent !important;
+}
+
+.swagger-ui .scheme-container {
+  background-color: transparent;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 10px 0;
+}
+
+.swagger-ui section.models {
+  border: 1px solid rgba(59, 65, 81, 0.3);
+  border-radius: 4px;
+  margin: 30px 0;
+}
+
+.swagger-ui .info {
+  margin: 20px 0;
+}
+
+.swagger-ui .info .title {
+  color: #3b4151;
+}
+
+.swagger-ui {
+  font-family: inherit;
+}

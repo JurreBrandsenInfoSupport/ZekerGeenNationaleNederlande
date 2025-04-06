@@ -31,45 +31,48 @@ export function useApiQuery<T, P extends Record<string, any> = Record<string, an
   enabled = true,
 }: UseApiQueryOptions<T, P>): UseApiQueryResult<T> {
   const [data, setData] = useState<T | undefined>(initialData)
-  const [pagination, setPagination] = useState<PaginationInfo | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(enabled)
   const [error, setError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState<PaginationInfo | undefined>(undefined)
+  const [hasInitialFetch, setHasInitialFetch] = useState(false)
   const { toast } = useToast()
 
   const fetchData = useCallback(async () => {
-    if (!enabled) return
-
     setIsLoading(true)
     setError(null)
 
     try {
       const queryString = params ? buildQueryString(params) : ""
-      const url = `${endpoint}${queryString}`
-
-      const response = await fetch(url, {
+      const response = await fetch(`${endpoint}${queryString}`, {
         cache: "no-store",
-        next: { revalidate: 0 },
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
       })
 
       const result = await handleApiResponse<any>(response)
 
       if (result.success && result.data) {
-        // Check if the response has pagination
-        if (result.data.pagination && result.data.items) {
+        if (result.data.items && result.data.pagination) {
           setData(result.data.items as T)
           setPagination(result.data.pagination)
         } else {
           setData(result.data as T)
         }
 
-        onSuccess?.(result.data as T)
+        if (onSuccess) {
+          onSuccess(result.data as T)
+        }
       } else {
         throw new Error(result.error || `Failed to fetch data from ${endpoint}`)
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred"
       setError(errorMessage)
-      onError?.(errorMessage)
+
+      if (onError) {
+        onError(errorMessage)
+      }
 
       toast({
         title: "Error",
@@ -78,21 +81,26 @@ export function useApiQuery<T, P extends Record<string, any> = Record<string, an
       })
     } finally {
       setIsLoading(false)
+      setHasInitialFetch(true)
     }
-  }, [endpoint, params, enabled, onSuccess, onError, toast])
+  }, [endpoint, params, onSuccess, onError, toast])
 
   useEffect(() => {
-    if (enabled) {
+    if (enabled && !hasInitialFetch) {
       fetchData()
     }
-  }, [fetchData, enabled])
+  }, [enabled, fetchData, hasInitialFetch])
+
+  const refetch = useCallback(() => {
+    return fetchData()
+  }, [fetchData])
 
   return {
     data,
-    pagination,
     isLoading,
     error,
-    refetch: fetchData,
+    pagination,
+    refetch,
   }
 }
 
