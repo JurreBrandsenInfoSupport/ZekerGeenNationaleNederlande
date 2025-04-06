@@ -267,7 +267,53 @@ function applyPagination<T>(
   }
 }
 
-// GET: Fetch all claims with pagination, filtering, and sorting
+/**
+ * @swagger
+ * /api/claims:
+ *   get:
+ *     summary: Get a list of claims
+ *     description: Retrieve a paginated list of claims with optional filtering, sorting, and search
+ *     tags:
+ *       - Claims
+ *     parameters:
+ *       - $ref: '#/components/parameters/page'
+ *       - $ref: '#/components/parameters/pageSize'
+ *       - $ref: '#/components/parameters/search'
+ *       - $ref: '#/components/parameters/sortField'
+ *       - $ref: '#/components/parameters/sortDirection'
+ *       - name: status
+ *         in: query
+ *         description: Filter by claim status
+ *         schema:
+ *           type: string
+ *           enum: [pending, processing, approved, rejected]
+ *       - name: minAmount
+ *         in: query
+ *         description: Minimum claim amount
+ *         schema:
+ *           type: number
+ *       - name: maxAmount
+ *         in: query
+ *         description: Maximum claim amount
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: A paginated list of claims
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Claim'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationInfo'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 export async function GET(request: NextRequest) {
   try {
     // Parse query parameters
@@ -315,14 +361,69 @@ export async function GET(request: NextRequest) {
     // Apply pagination
     const paginatedResult = applyPagination(filteredData, page, pageSize)
 
-    return NextResponse.json(paginatedResult)
+    // Add cache control headers to response
+    const response = NextResponse.json(paginatedResult)
+    response.headers.set('Cache-Control', 'private, max-age=60')
+    return response
   } catch (error) {
     console.error("Error in claims API:", error)
     return NextResponse.json({ error: "Failed to fetch claims" }, { status: 500 })
   }
 }
 
-// POST: Create a new claim
+/**
+ * @swagger
+ * /api/claims:
+ *   post:
+ *     summary: Create a new claim
+ *     description: Submit a new insurance claim
+ *     tags:
+ *       - Claims
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - policyNumber
+ *               - customerId
+ *               - customer
+ *               - amount
+ *               - incidentDate
+ *               - description
+ *             properties:
+ *               policyNumber:
+ *                 type: string
+ *                 description: The policy number
+ *               customerId:
+ *                 type: integer
+ *                 description: The customer ID
+ *               customer:
+ *                 type: string
+ *                 description: The customer name
+ *               amount:
+ *                 type: number
+ *                 description: The claim amount
+ *               incidentDate:
+ *                 type: string
+ *                 format: date
+ *                 description: The date of the incident
+ *               description:
+ *                 type: string
+ *                 description: The claim description
+ *     responses:
+ *       201:
+ *         description: Claim created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Claim'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json()

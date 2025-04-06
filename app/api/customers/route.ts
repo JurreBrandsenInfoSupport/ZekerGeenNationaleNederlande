@@ -271,7 +271,42 @@ function applyPagination<T>(
   }
 }
 
-// GET: Fetch all customers with pagination, filtering, and sorting
+/**
+ * @swagger
+ * /api/customers:
+ *   get:
+ *     summary: Get a list of customers
+ *     description: Retrieve a paginated list of customers with optional filtering, sorting, and search
+ *     tags:
+ *       - Customers
+ *     parameters:
+ *       - $ref: '#/components/parameters/page'
+ *       - $ref: '#/components/parameters/pageSize'
+ *       - $ref: '#/components/parameters/search'
+ *       - $ref: '#/components/parameters/sortField'
+ *       - $ref: '#/components/parameters/sortDirection'
+ *       - name: state
+ *         in: query
+ *         description: Filter by customer state
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A paginated list of customers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Customer'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationInfo'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 export async function GET(request: NextRequest) {
   try {
     // Parse query parameters
@@ -308,14 +343,78 @@ export async function GET(request: NextRequest) {
     // Apply pagination
     const paginatedResult = applyPagination(filteredData, page, pageSize)
 
-    return NextResponse.json(paginatedResult)
+    // Add cache control headers to response
+    const response = NextResponse.json(paginatedResult)
+    response.headers.set('Cache-Control', 'private, max-age=60')
+    return response
   } catch (error) {
     console.error("Error in customers API:", error)
     return NextResponse.json({ error: "Failed to fetch customers" }, { status: 500 })
   }
 }
 
-// POST: Create a new customer
+/**
+ * @swagger
+ * /api/customers:
+ *   post:
+ *     summary: Create a new customer
+ *     description: Create a new customer record
+ *     tags:
+ *       - Customers
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - phone
+ *               - address
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The customer's full name
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The customer's email address
+ *               phone:
+ *                 type: string
+ *                 description: The customer's phone number
+ *               address:
+ *                 type: object
+ *                 required:
+ *                   - street
+ *                   - city
+ *                   - state
+ *                   - zipCode
+ *                 properties:
+ *                   street:
+ *                     type: string
+ *                     description: Street address
+ *                   city:
+ *                     type: string
+ *                     description: City
+ *                   state:
+ *                     type: string
+ *                     description: State
+ *                   zipCode:
+ *                     type: string
+ *                     description: ZIP code
+ *     responses:
+ *       201:
+ *         description: Customer created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Customer'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json()

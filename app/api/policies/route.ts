@@ -309,7 +309,48 @@ function applyPagination<T>(
   }
 }
 
-// GET: Fetch all policies with pagination, filtering, and sorting
+/**
+ * @swagger
+ * /api/policies:
+ *   get:
+ *     summary: Get a list of policies
+ *     description: Retrieve a paginated list of policies with optional filtering, sorting, and search
+ *     tags:
+ *       - Policies
+ *     parameters:
+ *       - $ref: '#/components/parameters/page'
+ *       - $ref: '#/components/parameters/pageSize'
+ *       - $ref: '#/components/parameters/search'
+ *       - $ref: '#/components/parameters/sortField'
+ *       - $ref: '#/components/parameters/sortDirection'
+ *       - name: type
+ *         in: query
+ *         description: Filter by policy type
+ *         schema:
+ *           type: string
+ *       - name: status
+ *         in: query
+ *         description: Filter by policy status
+ *         schema:
+ *           type: string
+ *           enum: [active, pending, expired, cancelled]
+ *     responses:
+ *       200:
+ *         description: A paginated list of policies
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Policy'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/PaginationInfo'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 export async function GET(request: NextRequest) {
   try {
     // Parse query parameters
@@ -352,14 +393,73 @@ export async function GET(request: NextRequest) {
     // Apply pagination
     const paginatedResult = applyPagination(filteredData, page, pageSize)
 
-    return NextResponse.json(paginatedResult)
+    // Add cache control headers to response
+    const response = NextResponse.json(paginatedResult)
+    response.headers.set('Cache-Control', 'private, max-age=60')
+    return response
   } catch (error) {
     console.error("Error in policies API:", error)
     return NextResponse.json({ error: "Failed to fetch policies" }, { status: 500 })
   }
 }
 
-// POST: Create a new policy
+/**
+ * @swagger
+ * /api/policies:
+ *   post:
+ *     summary: Create a new policy
+ *     description: Create a new insurance policy
+ *     tags:
+ *       - Policies
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - customerId
+ *               - customer
+ *               - type
+ *               - premium
+ *               - startDate
+ *               - endDate
+ *             properties:
+ *               customerId:
+ *                 type: integer
+ *                 description: The customer ID
+ *               customer:
+ *                 type: string
+ *                 description: The customer name
+ *               type:
+ *                 type: string
+ *                 description: The policy type
+ *               premium:
+ *                 type: number
+ *                 description: The annual premium amount
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *                 description: The policy start date
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *                 description: The policy end date
+ *               coverageDetails:
+ *                 type: object
+ *                 description: The policy coverage details
+ *     responses:
+ *       201:
+ *         description: Policy created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Policy'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json()

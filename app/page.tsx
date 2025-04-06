@@ -8,12 +8,13 @@ import { Overview } from "@/components/dashboard/overview"
 import { RecentClaims } from "@/components/dashboard/recent-claims"
 import { useApiQuery } from "@/hooks/use-api-query"
 import type { Policy, Claim, Customer } from "@/lib/types"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { ErrorMessage } from "@/components/ui/error-message"
 import { formatNumber, formatCurrency } from "@/lib/format-utils"
 
 export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0)
+  const [isManualRefresh, setIsManualRefresh] = useState(false)
 
   // Fetch summary data
   const {
@@ -24,6 +25,7 @@ export default function Home() {
   } = useApiQuery<Policy[]>({
     endpoint: "/api/policies",
     params: { pageSize: 100 }, // Get all policies for counting
+    enabled: true, // Only fetch on initial load
   })
 
   const {
@@ -38,6 +40,7 @@ export default function Home() {
       sortField: "filedDate",
       sortDirection: "desc",
     },
+    enabled: true, // Only fetch on initial load
   })
 
   const {
@@ -48,6 +51,7 @@ export default function Home() {
   } = useApiQuery<Customer[]>({
     endpoint: "/api/customers",
     params: { pageSize: 100 }, // Get all customers for counting
+    enabled: true, // Only fetch on initial load
   })
 
   // Calculate statistics
@@ -64,13 +68,25 @@ export default function Home() {
   // Get recent claims for display
   const recentClaims = claimsData?.slice(0, 4) || []
 
-  // Handle refresh
-  const handleRefresh = () => {
-    refetchPolicies()
-    refetchClaims()
-    refetchCustomers()
-    setRefreshKey((prev) => prev + 1)
-  }
+  // Manual refresh function
+  const handleRefresh = useCallback(() => {
+    setIsManualRefresh(true)
+
+    // Create new promises for each fetch operation
+    const promises = [
+      refetchPolicies(),
+      refetchClaims(),
+      refetchCustomers()
+    ]
+
+    // When all operations complete, update the state
+    Promise.all(promises)
+      .finally(() => {
+        setIsManualRefresh(false)
+        // Increment refreshKey to indicate data is fresh
+        setRefreshKey(prev => prev + 1)
+      })
+  }, [refetchPolicies, refetchClaims, refetchCustomers])
 
   // Check for errors
   const hasError = policiesError || claimsError || customersError
@@ -84,10 +100,10 @@ export default function Home() {
             <Button
               variant="outline"
               onClick={handleRefresh}
-              disabled={policiesLoading || claimsLoading || customersLoading}
+              disabled={policiesLoading || claimsLoading || customersLoading || isManualRefresh}
             >
               <RefreshCw
-                className={`mr-2 h-4 w-4 ${policiesLoading || claimsLoading || customersLoading ? "animate-spin" : ""}`}
+                className={`mr-2 h-4 w-4 ${isManualRefresh ? "animate-spin" : ""}`}
               />
               Refresh Data
             </Button>
